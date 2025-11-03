@@ -1,0 +1,411 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Macadam Streaks API",
+    "description": "API to test the streaks functionality",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Macadam Team",
+      "email": "dev@macadam.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local Development Server"
+    }
+  ],
+  "security": [
+    {
+      "FirebaseAuth": []
+    }
+  ],
+  "paths": {
+    "/steps/v2/{uuid}": {
+      "post": {
+        "summary": "Validate steps for a user",
+        "description": "Validates steps and creates/updates a streak",
+        "tags": [
+          "Steps"
+        ],
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "test-user-no-streak"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "steps": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 150000,
+                    "example": 10000
+                  }
+                },
+                "required": [
+                  "steps"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Steps validated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "coinsEarned": {
+                          "type": "integer",
+                          "example": 50
+                        },
+                        "streak": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "example": "streak-123"
+                            },
+                            "counter": {
+                              "type": "integer",
+                              "example": 1
+                            },
+                            "startDate": {
+                              "type": "string",
+                              "format": "date-time",
+                              "example": "2025-01-01T00:00:00Z"
+                            },
+                            "endDate": {
+                              "type": "string",
+                              "format": "date-time",
+                              "nullable": true,
+                              "example": null
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "steps must be between 0 and 150000"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/streaks": {
+      "get": {
+        "summary": "Get active streak",
+        "description": "Retrieves the user's active streak information",
+        "tags": [
+          "Streaks"
+        ],
+        "responses": {
+          "200": {
+            "description": "Active streak retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "hasValidatedToday": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "counter": {
+                      "type": "integer",
+                      "example": 5
+                    },
+                    "longestStreak": {
+                      "type": "integer",
+                      "example": 15
+                    },
+                    "milestones": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "example": {
+                        "7": "2025-01-07T00:00:00Z",
+                        "14": "2025-01-14T00:00:00Z",
+                        "30": "2025-01-30T00:00:00Z"
+                      }
+                    },
+                    "tools": {
+                      "type": "object",
+                      "properties": {
+                        "max": {
+                          "type": "integer",
+                          "example": 2
+                        },
+                        "available": {
+                          "type": "integer",
+                          "example": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/streaks/check": {
+      "get": {
+        "summary": "Check streak status",
+        "description": "Checks if the streak is lost or can be saved with freezers",
+        "tags": [
+          "Streaks"
+        ],
+        "responses": {
+          "200": {
+            "description": "Streak status checked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "hasLost": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "streak": {
+                          "type": "object",
+                          "nullable": true,
+                          "example": null
+                        },
+                        "counterLastStreak": {
+                          "type": "integer",
+                          "example": 5
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "hasLost": {
+                          "type": "boolean",
+                          "example": false
+                        },
+                        "streak": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "example": "streak-123"
+                            },
+                            "counter": {
+                              "type": "integer",
+                              "example": 5
+                            },
+                            "startDate": {
+                              "type": "string",
+                              "format": "date-time",
+                              "example": "2025-01-01T00:00:00Z"
+                            },
+                            "endDate": {
+                              "type": "string",
+                              "format": "date-time",
+                              "nullable": true,
+                              "example": null
+                            }
+                          }
+                        },
+                        "toolsUsed": {
+                          "type": "integer",
+                          "example": 2
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/streaks/recovery-tools/buy": {
+      "post": {
+        "summary": "Buy recovery tools",
+        "description": "Buys freezers to save a streak",
+        "tags": [
+          "Recovery Tools"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "quantity": {
+                    "type": "integer",
+                    "enum": [
+                      1,
+                      2
+                    ],
+                    "example": 1
+                  }
+                },
+                "required": [
+                  "quantity"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Freezers purchased successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Recovery tools purchased successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Purchase error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "enum": [
+                        "not_enough_coins",
+                        "already_have_max_recovery_tools",
+                        "cant_buy_more_than_max"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/streaks/month-history/{date}": {
+      "get": {
+        "summary": "Get monthly history",
+        "description": "Retrieves streak history for a given month",
+        "tags": [
+          "Streaks"
+        ],
+        "parameters": [
+          {
+            "name": "date",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}$"
+            },
+            "example": "2025-01"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "History retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "streaks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "date": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2025-01-01T00:00:00Z"
+                          },
+                          "counter": {
+                            "type": "integer",
+                            "example": 1
+                          },
+                          "isActive": {
+                            "type": "boolean",
+                            "example": false
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    }
+  
+  }
+}
